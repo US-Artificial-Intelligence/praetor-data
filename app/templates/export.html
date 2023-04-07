@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Export{% endblock %}
+
+{% block meta %}
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>
+        Export
+    </h1>
+    <div>
+        <form action="/export" method="POST">
+            <h2>
+                Filters
+            </h2>
+            <label for="content-search">Prompt content:</label>
+            <input type="text" id="content-search" name="content" placeholder="Prompt content..." value="{{ request.args.get('content') if request.args.get('content') }}">
+            <button type="submit">Submit</button>
+            <br/><br/>
+            <label for="example-search">Example content:</label>
+            <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
+            <br/><br/>
+            <label for="tags-search">Tag:</label>
+            <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Tag...">
+            <br/><br/>
+            <label for="project-search">Project:</label>
+            <select name="project_id" id="project-select">
+                <option value="" selected>--No Project Selected--</option>
+                {% for proj in projects%}
+                    <option value="{{ proj.id }}">{{ proj.name }}</option>
+                {% endfor %}
+            </select>
+            <br/><br/>
+            <label for="style-search">Style:</label>
+            <select name="style_id" id="style-select">
+                <option value="" selected>--No Style Selected--</option>
+                {% for style in styles%}
+                    <option value="{{ style.id }}">{{ style.id_text }}</option>
+                {% endfor %}
+            </select>
+            <h2>
+                Options
+            </h2>
+            <label for="filename-text">Export filename:</label>
+            <input type="text" id="filename-text" name="filename" placeholder="filename.json">
+            <br/><br/>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script type="text/javascript">
+        document.getElementById('project-select').value = "{{ request.args.get('project_id') if request.args.get('project_id') }}";
+        document.getElementById('style-select').value = "{{ request.args.get('style_id') if request.args.get('style_id') }}";
+    </script>
+</div>
+{% endblock %}

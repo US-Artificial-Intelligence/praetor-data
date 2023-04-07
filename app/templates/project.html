@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+<style>
+    .add-style-error{
+        background-color: red;
+        padding: .5em;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div>
+        <h1>
+            {{ project.name }}
+        </h1>
+        <div>
+            <h2>
+                Description
+            </h2>
+            {{ project.desc }}
+        </div>
+        <h2>Styles</h2>
+        <script type="text/javascript">
+            var opened = false;
+            function openAdd(){
+                if (opened){
+                    document.getElementById("add-style").style.display = "none";
+                }
+                else {
+                    document.getElementById("add-style").style.display = "block";
+                }
+                opened = !opened;
+            }
+        </script>
+        <button onclick="openAdd()">Add Style</button>
+        <div id="add-style" style="display:none">
+            <p>
+                A style is defined by its <b>format string</b>, which is text including named arguments in {curly braces}.
+                <br/><br/>
+                The <b>idtext</b> is a short name to which you can refer to the style, like `instruct` or `chat`.
+                <br/><br/>
+                The <b>preview key</b> is the named argument of your format string that will appear in the prompt manifest (viewer).
+                <br/><br/>
+                The <b>completion key</b> is the space into which your language model's completion will go.
+            </p>
+            <form method="post" action="{{ url_for(request.endpoint, **request.args.copy()) }}">
+                <input type="text" placeholder="idtext" name="id_text" />
+                <br/>
+                <br/>
+                <textarea name="format_string" style="width:50%;height:20em" placeholder="Prompt format {string}"></textarea>
+                <br/>
+                <br/>
+                <input type="text" placeholder="completion key" name="completion_key" />
+                <br/>
+                <br/>
+                <input type="text" placeholder="preview key" name="preview_key" />
+                <br/>
+                <br/>
+                <input type="text" value="{{ project.id }}" style="display:none" name="project_id" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        <br/>
+        <br/>
+        <div id="add-style-errors">
+            {% for error in errors %}
+                <div class="add-style-error">
+                    Error submitting style: {{error}}
+                </div>
+            {% endfor %}
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Link</th>
+                    <th>Name</th>
+                    <th>Add Data in Style</th>
+                    <th>Time Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in styles %}
+                <tr>
+                    <td><a href="/style?id={{ row.id }}">View</a></td>
+                    <td>{{ row.id_text }}</td>
+                    <td><a href="/add?project_id={{ project.id }}&style_id={{ row.id }}"><button>Add Data</button></a></td>
+                    <td>{{ row.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+  </div>
+{% endblock %}

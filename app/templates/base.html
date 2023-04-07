@@ -1,0 +1,25 @@
+<!doctype html>
+<head>
+    <title>{% block title %}{% endblock %} - Praetor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block meta %}{% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<nav>
+  <a href="/"><b><span class="nav-bar-main-header">Praetor</span></b></a>
+  <a href="/manifest"><span class="nav-bar-text">Prompts</span></a>
+  <a href="/projects"><span class="nav-bar-text">Projects</span></a>
+  <a href="/exports"><span class="nav-bar-text">Exports</span></a>
+  <a href="/tasks"><span class="nav-bar-text">Tasks</span></a>
+</nav>
+<div id="wrapper">
+    <section id="page-content">
+        {% block content %}{% endblock %}
+    </section>
+    <div id="footer">
+        <div id="footer-text">
+            This software is distributed by U.S. Artificial Intelligence Inc. under the Creative Commons Attribution-NonCommercial license. <br/><br/>
+            Contact <a href="mailto:team@agrippa.build">team@agrippa.build</a> for permission to use Praetor for commercial purposes, or for any comments, questions, or concerns.
+        </div>
+    </div>
+</div>

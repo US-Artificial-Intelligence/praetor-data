@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}View{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='view.css') }}">
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    var opened = false;
+    function openAdd(){
+        if (opened){
+            document.getElementById("add-completion").style.display = "none";
+        }
+        else {
+            document.getElementById("add-completion").style.display = "block";
+        }
+        opened = !opened;
+    }
+</script>
+<div>
+    {% if prompt %}
+    <div>
+        <h2>
+        Prompt
+        </h2>
+        <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+            <span>
+                Prompt Style: <a href="style?id={{ style.id }}">{{ style.id_text }}</a>
+            </span> <br/><br/>
+            {% for val in prompt_values %}
+                {{ val.key }} <br/>
+                <textarea name="key.{{ val.key }}" class="completion-editor" id="prompt-completion-editor-{{ val.key }}">{{ val.value }}</textarea> <br/><br/>
+                <script>
+                    textarea = document.getElementById("prompt-completion-editor-{{ val.key }}");
+                    textarea.style.height = textarea.scrollHeight + "px";
+                </script>
+            {% endfor %}
+            Tags: <input type="text" value="{{ prompt_tags if prompt_tags }}" name="tags" /> <br/><br/>
+            <input type="text" value="update_prompt" name="update_type" style="display:none" />
+            <button type="submit" class="edit-prompt-button">
+                Update
+            </button>
+        </form>
+        <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+            <input type="text" value="delete_prompt" name="update_type" style="display:none" />
+            <button type="submit" class="delete-button">
+                Delete
+            </button>
+        </form>
+        <br/>
+    </div>
+    <div>
+        <br/>
+        <span class="completions-header">
+            <b>Completions</b>
+        </span>
+        <button onclick="openAdd()">Add</button>
+        <div id="add-completion">
+            <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
+                <br/>
+                <textarea name="completion" placeholder="Completion"></textarea>
+                <br/>
+                <input type="text" placeholder="comma,separated,tags" name="tags" />
+                <br/>
+                <br/>
+                <input type="text" value="add_completion" name="update_type" style="display:none" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        <br/> <br/>
+        <div>
+            <script>
+                var textarea = null;
+            </script>
+            {% for row in completions %}
+            <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+                <textarea name="completion" id="completion-editor-{{ row.id }}" class="completion-editor">{{ row.completion }}</textarea>
+                <script>
+                    textarea = document.getElementById("completion-editor-{{ row.id }}");
+                    textarea.style.height = textarea.scrollHeight + "px";
+                </script>
+                <div>
+                    Tags: <input type="text" name="tags" value="{{ row.tags if row.tags }}" />
+                </div>
+                <input type="number" value="{{ row.id }}" name="id" style="display:none" />
+                <input type="text" value="update_completion" name="update_type" style="display:none" />
+                <button type="submit" class="edit-completion-button">
+                    Update
+                </button>
+            </form>
+            <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+                <input type="number" value="{{ row.id }}" name="id" style="display:none" />
+                <input type="text" value="delete_completion" name="update_type" style="display:none" />
+                <button type="submit" class="delete-button">
+                    Delete
+                </button>
+            </form>
+            <br/>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <h1>No Prompt Found</h1>
+    {% endif %}
+</div>
+{% endblock %}

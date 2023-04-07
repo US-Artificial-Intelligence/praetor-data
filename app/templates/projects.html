@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>
+    Projects
+    </h1>
+    <script type="text/javascript">
+    var opened = false;
+    function openAdd(){
+        if (opened){
+            document.getElementById("add-project").style.display = "none";
+        }
+        else {
+            document.getElementById("add-project").style.display = "block";
+        }
+        opened = !opened;
+    }
+    </script>
+    <button onclick="openAdd()">Add</button>
+    <br/>
+    <br/>
+    <div id="add-project" style="display:none">
+        <form method="post" action="{{ url_for(request.endpoint) }}">
+            <input type="text" placeholder="Name" name="name" />
+            <br/>
+            <br/>
+            <textarea name="description" placeholder="Description"></textarea>
+            <br/>
+            <br/>
+            <button type="submit">Submit</button>
+        </form>
+        <br/>
+        <br/>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Link</th>
+                <th>Time</th>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in projects %}
+            <tr>
+                <td><a href="/project?id={{ row.id }}">View</a></td>
+                <td>{{ row.created_at }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.desc }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

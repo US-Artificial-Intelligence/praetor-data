@@ -1,0 +1,32 @@
+
+.prompt, .completion-editor {
+    padding: 1em;
+    background-color: #f0f0f0;
+    border: 1px solid #808080;
+}
+
+#add-completion {
+    display: none;
+}
+
+#add-completion textarea{
+    width: 50%;
+    height: 10em;
+}
+
+.completion-editor {
+    width: calc(100% - 2em);
+    margin-top: .5em;
+}
+
+.edit-completion-button, .edit-prompt-button, .edit-style{
+    margin-top: .5em;
+}
+
+.completions-header {
+    font-size: 1.5em;
+}
+
+.delete-button {
+    margin-top: .5em;
+}

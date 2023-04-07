@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Style{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style_viewer.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div>
+        <h1>
+            Style
+        </h1>
+        <div>
+            Associated Project: <a href="/project?id={{ project.id }}">{{ project.name }}</a>
+        </div>
+        <div>
+            Name: {{ style.id_text }}
+        </div>
+        <div>
+            <h2>Prompt Template</h2>
+            <textarea name="template" class="textarea-template">{{ style.template }}</textarea>
+        </div>
+        <h2>Keys:</h2>
+        {% for row in keys %}
+        <div>
+            {{ row.name }}
+        </div>    
+        {% endfor %}
+  </div>
+{% endblock %}

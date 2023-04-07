@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}View{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='manifest.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+{% endblock %}
+
+{% block content %}
+
+{% set query_params = request.args.copy() %}
+
+<div>
+    <h1>
+        Prompts
+    </h1>
+    <div>
+        <div id="search-form">
+            <form action="/manifest" method="GET">
+                <label for="content-search">Search prompt content:</label>
+                <input type="text" id="content-search" name="content" placeholder="Search prompt content..." value="{{ request.args.get('content') if request.args.get('content') }}">
+                <button type="submit">Submit</button>
+                <br/><br/>
+                <input type="button" id="open-search-header" onclick="openSearch()" value="More Options" />
+                <a style="all:unset" href="{{ url_for('exporting.exp', **query_params) }}">
+                    <input type="button" value="Export" />
+                </a>
+                {% if request.args %}
+                <a href="/manifest">
+                    <input type="button" id="clear-search" value="Clear" />
+                </a>
+                {% endif %}
+                <div id="extra-search-form" style="display:none">
+                    <!-- NOTE: Any additions here should also be added to the export feature! -->
+                    <br/>
+                    <label for="example-search">Search example:</label>
+                    <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
+                    <br/><br/>
+                    <label for="example-search">Tags:</label>
+                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tags...">
+                    <br/><br/>
+                    <label for="project-search">Project:</label>
+                    <select name="project_id" id="project-select">
+                        <option value="" selected>--No Project Selected--</option>
+                        {% for proj in projects%}
+                            <option value="{{ proj.id }}">{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br/><br/>
+                    <label for="style-search">Style:</label>
+                    <select name="style_id" id="style-select">
+                        <option value="" selected>--No Style Selected--</option>
+                        {% for style in styles%}
+                            <option value="{{ style.id }}">{{ style.id_text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div>
+            <span>Total Results:</span>
+            {{ "{:,d}".format(total_results) }}
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Link</th>
+                <th>Prompt</th>
+                <th>Tags</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in prompts %}
+            <tr>
+                <td><a href="/view?prompt_id={{ row.prompt_id }}"> View </a></td>
+                <td>{{ row.value }}</td>
+                <td>{{ row.tags }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div id="pages">
+        {% set total_pages = ((total_results - 1) // page_size) + 1 %}
+        {% set current_offset = query_params['offset']|default(0)|int %}
+        {% set current_page = current_offset // page_size + 1 %}
+        {% set page_window = 5 %}
+        {% set last_shown_page = [current_page+page_window, total_pages]|min %}
+
+        <div class="pagination">
+            {% if current_offset != 0 %}
+                {% set x=query_params.__setitem__("offset", 0) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    First
+                </a>
+            {% endif %}
+            {% if total_pages - current_page > 0 %}
+                {% set x=query_params.__setitem__("offset", (current_page) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    Next
+                </a>
+            {% endif %}
+            {% for i in range([current_page - page_window, 1]|max, last_shown_page+1) %}
+                {% set x=query_params.__setitem__("offset", (i - 1) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    {% if i == current_page %}
+                        <span class="selected-page-number">{{ i }}</span>
+                    {% else %}
+                        <span class="unselected-page-number">{{ i }}</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+            {% if last_shown_page - total_pages < 0 %}
+                {% set x=query_params.__setitem__("offset", (total_pages - 1) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    ... {{ total_pages }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById('project-select').value = "{{ request.args.get('project_id') if request.args.get('project_id') }}";
+        document.getElementById('style-select').value = "{{ request.args.get('style_id') if request.args.get('style_id') }}";
+
+        if(document.getElementById('example-search').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('project-select').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('tags-search').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('style-select').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+
+        function openSearch(){
+            if(document.getElementById("extra-search-form").style.display == "none"){
+                document.getElementById("extra-search-form").style.display = "block";
+            }
+            else {
+                document.getElementById("extra-search-form").style.display = "none";
+            }
+        }
+    </script>
+</div>
+{% endblock %}

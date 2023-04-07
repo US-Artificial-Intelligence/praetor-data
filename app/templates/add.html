@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Add{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Add Data</h1>
+    <div>
+        <form action="/add" method="POST">
+            <h2>
+                Add Prompt
+            </h2>
+            <span>
+                Prompt Style: {{ style.id_text }}
+            </span> <br/><br/>
+            {% for key in style_keys %}
+                {{ key.name }} <br/>
+                <textarea name="key.{{ key.name }}" class="prompt-textarea"></textarea> <br/><br/>
+            {% endfor %}
+            <span>
+                Tags:
+            </span>
+            <input type="text" placeholder="comma,separated,tags" name="tags" /> <br/><br/>
+            <input type="text" style="display:none" value="{{ project.id }}" name="project_id" />
+            <input type="text" style="display:none" value="{{ style.id }}" name="style_id" />
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        <form action="/add" method="POST" enctype="multipart/form-data">
+            <h2>
+                Bulk Upload
+            </h2>
+            <input type="file" name="file"> <br/><br/>
+            <span>
+                Tags:
+            </span>
+            <input type="text" placeholder="comma,sep,tags" name="tags"> <br/><br/>
+            <input type="text" style="display:none" value="{{ project.id }}" name="project_id" />
+            <input type="text" style="display:none" value="{{ style.id }}" name="style_id" />
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Exports{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div>
+      <h1>
+        Exports
+      </h1>
+      <table>
+        <thead>
+            <tr>
+                <th>Download</th>
+                <th>Time</th>
+                <th>Filename</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in exports %}
+            <tr>
+                <td><a href="/exports?download_id={{ row.id }}"> Download</a></td>
+                <td>{{ row.created_at }}</td>
+                <td>{{ row.filename }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+  </div>
+{% endblock %}

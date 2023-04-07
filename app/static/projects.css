@@ -1,0 +1,9 @@
+
+#add-project textarea{
+    width: 50%;
+    height: 10em;
+}
+
+#add-project input[type=text]{
+    width: 50%;
+}
