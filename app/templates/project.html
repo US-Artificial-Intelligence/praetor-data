@@ -35,6 +35,10 @@
             <script type="text/javascript">
                 function deleteProject(){
                     let x = confirm("Are you sure you want to delete this project? It will also delete all prompts associated with the project. There is no way to recover.")
+                    
+                    if(!x){
+                        return;
+                    }
                     // URL of the endpoint to send the request
                     const endpointUrl = '/project';
 
