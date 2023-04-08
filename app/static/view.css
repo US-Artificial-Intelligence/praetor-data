@@ -1,6 +1,6 @@
 
 .prompt, .completion-editor {
-    padding: 1em;
+    padding: 12px;
     background-color: #f0f0f0;
     border: 1px solid #808080;
 }
@@ -15,7 +15,7 @@
 }
 
 .completion-editor {
-    width: calc(100% - 2em);
+    width: calc(100% - 24px);
     margin-top: .5em;
 }
 

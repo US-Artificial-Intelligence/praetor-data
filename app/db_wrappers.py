@@ -563,3 +563,27 @@ def add_style(db, idtext, format_string, completion_key, preview_key, project_id
     db.commit()
 
     return style_id
+
+def delete_project(db, project_id):
+    c = db.cursor()
+    # Remove all associated completions
+    sql = """
+        DELETE FROM examples
+        WHERE prompt_id IN (
+            SELECT id FROM prompts
+            WHERE project_id = ?
+        );
+    """
+    c.execute(sql, (project_id,))
+
+    # Remove all associated prompts
+    c.execute("DELETE FROM prompts WHERE project_id = ?", (project_id,))
+
+    # Remove all associated styles
+    c.execute("DELETE FROM styles WHERE project_id = ?", (project_id,))
+
+    # Remove project
+    c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+
+    db.commit()
+
