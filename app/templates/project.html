@@ -27,7 +27,7 @@
 
 {% block content %}
   <div>
-        <form action="/project" method="POST">
+        <form action="{{ url_for(request.endpoint, id=request.args.get('id'), **request.view_args) }}" method="POST">
             <h1>
                 <input id="project-name" type="text" value="{{ project.name }}" name="name">
             </h1>
@@ -40,7 +40,8 @@
 
                     // Your form data as a key-value pair
                     const formData = {
-                        project_id: '{{ project.id }}'
+                        project_id: '{{ project.id }}',
+                        form_type: "delete"
                     };
 
                     // Create a form element
@@ -74,7 +75,8 @@
                     textarea.style.height = Math.max(textarea.scrollHeight, 12) + "px";
                 </script>
             </div>
-            <input type="text" value="{{ project.id }}" style="display:none">
+            <input type="text" value="{{ project.id }}" name="project_id" style="display:none">
+            <input type="text" value="update" name="form_type" style="display:none">
         </form>
         <h2>Styles</h2>
         <script type="text/javascript">
