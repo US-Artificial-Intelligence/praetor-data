@@ -1,10 +1,11 @@
 from flask import (
     Blueprint,
     render_template,
-    request
+    request,
+    redirect
 )
 from app.db import get_db
-from app.db_wrappers import get_project_by_id, get_style_by_id, get_keys_by_style_id, update_style
+from app.db_wrappers import delete_style, get_project_by_id, get_style_by_id, get_keys_by_style_id, update_style
 from app.utils import get_named_arguments
 import json
 
@@ -33,8 +34,16 @@ def style():
 
             if len(errors) == 0:
                 update_style(db, style_id, id_text, template, completion_key, preview_key)
+        elif form_type == 'delete':
+            if style_id:
+                delete_style(db, style_id)
+
 
     id = request.args.get('id')
+
+    if not id:
+        return redirect("/projects")
+
     style = get_style_by_id(db, id)
     proj_id = style['project_id']
     project = get_project_by_id(db, proj_id)

@@ -646,3 +646,25 @@ def update_style(db, style_id, id_text, template, completion_key, preview_key):
         c.execute("UPDATE styles SET preview_key = ? WHERE id = ?", (preview_key, style_id))
 
     db.commit()
+
+
+def delete_style(db, style_id):
+    c = db.cursor()
+    # Remove all associated completions
+    sql = """
+        DELETE FROM examples
+        WHERE prompt_id IN (
+            SELECT id FROM prompts
+            WHERE style = ?
+        );
+    """
+    c.execute(sql, (style_id,))
+
+    # Remove all associated prompts
+    c.execute("DELETE FROM prompts WHERE style = ?", (style_id,))
+
+    # Remove the style
+    c.execute("DELETE FROM styles WHERE id = ?", (style_id,))
+
+    db.commit()
+

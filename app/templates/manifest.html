@@ -38,7 +38,7 @@
                     <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
                     <br/><br/>
                     <label for="example-search">Tags:</label>
-                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tags...">
+                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tags (inclusive)...">
                     <br/><br/>
                     <label for="project-search">Project:</label>
                     <select name="project_id" id="project-select">

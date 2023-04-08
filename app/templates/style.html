@@ -31,8 +31,44 @@
                 Name: <input type="text" value="{{ style.id_text }}" name="id_text" class="style_input_text">
             </div>
             <br/>
-            <button type="submit">Save</button>
-            <button type="submit">Delete</button>
+            <a href="/add?project_id={{ project.id }}&style_id={{ style.id }}"><button type="button">Add Data</button></a>
+            <br/><br/>
+            <button type="submit">Save Changes</button>
+            <script type="text/javascript">
+                function deleteStyle(){
+                    let x = confirm("Are you sure you want to delete this style? Doing so will also remove all prompts made in this style.")
+                    if (!x){
+                        return;
+                    }
+                    // URL of the endpoint to send the request
+                    const endpointUrl = '/style';
+
+                    // Your form data as a key-value pair
+                    const formData = {
+                        style_id: '{{ style.id }}',
+                        form_type: "delete"
+                    };
+
+                    // Create a form element
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = endpointUrl;
+
+                    // Iterate through form data and create hidden input elements
+                    for (const [key, value] of Object.entries(formData)) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = value;
+                        form.appendChild(input);
+                    }
+
+                    // Append the form to the body and submit it
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            </script>
+            <button type="button" onclick="deleteStyle()">Delete</button>
             {% if errors|length > 0 %}
             <br/>
             {% endif %}
