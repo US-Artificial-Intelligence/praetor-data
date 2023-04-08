@@ -4,6 +4,18 @@
 
 {% block meta %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style_viewer.css') }}">
+<style>
+    .style_input_text{
+        border: 0px;
+        font-family: inherit;
+        font-size: 1em;
+    }
+    .error-message {
+        background-color: red;
+        color: white;
+        padding: 1em;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -11,21 +23,50 @@
         <h1>
             Style
         </h1>
-        <div>
-            Associated Project: <a href="/project?id={{ project.id }}">{{ project.name }}</a>
-        </div>
-        <div>
-            Name: {{ style.id_text }}
-        </div>
-        <div>
-            <h2>Prompt Template</h2>
-            <textarea name="template" class="textarea-template">{{ style.template }}</textarea>
-        </div>
-        <h2>Keys:</h2>
-        {% for row in keys %}
-        <div>
-            {{ row.name }}
-        </div>    
-        {% endfor %}
+        <form action="{{ url_for(request.endpoint, id=request.args.get('id'), **request.view_args) }}" method="POST">
+            <div>
+                Associated Project: <a href="/project?id={{ project.id }}">{{ project.name }}</a>
+            </div>
+            <div>
+                Name: <input type="text" value="{{ style.id_text }}" name="id_text" class="style_input_text">
+            </div>
+            <br/>
+            <button type="submit">Save</button>
+            <button type="submit">Delete</button>
+            {% if errors|length > 0 %}
+            <br/>
+            {% endif %}
+            {% for error in errors %}
+            <br/>
+            <div class="error-message">
+                Error: {{ error }}
+            </div>
+            {% endfor %}
+            <div>
+                <h2>Prompt Template</h2>
+                <textarea name="template" class="textarea-template">{{ style.template }}</textarea>
+            </div>
+            <h2>Keys:</h2>
+            {% for row in keys %}
+            <div>
+                {{ row.name }}
+            </div>
+            {% endfor %}
+            <br/>
+            {% for row in keys %}
+            {% if row.name == style.completion_key %}
+            <div>
+                Completion key: <input type="text" value="{{ row.name }}" name="completion_key" class="style_input_text">
+            </div>
+            {% endif %}
+            {% if row.name == style.preview_key %}
+            <div>
+                Preview Key: <input type="text" value="{{ row.name }}" name="preview_key" class="style_input_text">
+            </div>
+            {% endif %}
+            {% endfor %}
+            <input type="text" value="{{ style.id }}" name="style_id" style="display:none">
+            <input type="text" value="update" name="form_type" style="display:none">
+        </form>
   </div>
 {% endblock %}

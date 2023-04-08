@@ -34,7 +34,8 @@
                 <textarea name="key.{{ val.key }}" class="completion-editor" id="prompt-completion-editor-{{ val.key }}">{{ val.value }}</textarea> <br/><br/>
                 <script>
                     textarea = document.getElementById("prompt-completion-editor-{{ val.key }}");
-                    textarea.style.height = textarea.scrollHeight + "px";
+                    // The 24 comes from the padding
+                    textarea.style.height = Math.max(textarea.scrollHeight - 24, 12) + "px";
                 </script>
             {% endfor %}
             Tags: <input type="text" value="{{ prompt_tags if prompt_tags }}" name="tags" /> <br/><br/>
@@ -79,7 +80,8 @@
                 <textarea name="completion" id="completion-editor-{{ row.id }}" class="completion-editor">{{ row.completion }}</textarea>
                 <script>
                     textarea = document.getElementById("completion-editor-{{ row.id }}");
-                    textarea.style.height = textarea.scrollHeight + "px";
+                    // The 24 comes from the padding
+                    textarea.style.height = Math.max(textarea.scrollHeight - 24, 12) + "px"
                 </script>
                 <div>
                     Tags: <input type="text" name="tags" value="{{ row.tags if row.tags }}" />

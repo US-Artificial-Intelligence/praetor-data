@@ -5,7 +5,7 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import add_example, delete_example, update_example, get_examples_by_prompt_id, get_prompt_by_id, get_prompt_values_by_prompt_id, get_style_by_id, get_tags_by_prompt_id, update_prompt, delete_prompt
+from app.db_wrappers import add_example, delete_example, get_keys_by_style_id, update_example, get_examples_by_prompt_id, get_prompt_by_id, get_prompt_values_by_prompt_id, get_style_by_id, get_tags_by_prompt_id, update_prompt, delete_prompt
 from app.utils import tag_string_to_list
 
 bp = Blueprint('view', __name__)
@@ -58,6 +58,17 @@ def view():
 
         prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
         style = get_style_by_id(db, prompt_dict['style'])
+        style_keys = get_keys_by_style_id(db, prompt_dict['style'])
+        prompt_value_keys = [x['key'] for x in prompt_values]
+        for key in style_keys:
+            if key['name'] == style['completion_key']:
+                continue
+            if key['name'] not in prompt_value_keys:
+                prompt_values.append({
+                    'key': key['name'],
+                    'value': ""
+                })
+
 
         completions = get_examples_by_prompt_id(db, prompt_id, with_tags=True)
 

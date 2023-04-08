@@ -10,20 +10,74 @@
         padding: .5em;
         color: white;
     }
+    #project-description{
+        width: calc(100% - 24px);
+        border: 0px;
+        font-family: inherit;
+        font-size: inherit;
+    }
+    #project-name{
+        font-size: 1.5em;
+        font-family: inherit;
+        border: 0px;
+        font-weight: bold;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
   <div>
-        <h1>
-            {{ project.name }}
-        </h1>
-        <div>
-            <h2>
-                Description
-            </h2>
-            {{ project.desc }}
-        </div>
+        <form action="{{ url_for(request.endpoint, id=request.args.get('id'), **request.view_args) }}" method="POST">
+            <h1>
+                <input id="project-name" type="text" value="{{ project.name }}" name="name">
+            </h1>
+            <button type="submit">Save</button>
+            <script type="text/javascript">
+                function deleteProject(){
+                    let x = confirm("Are you sure you want to delete this project? It will also delete all prompts associated with the project. There is no way to recover.")
+                    // URL of the endpoint to send the request
+                    const endpointUrl = '/project';
+
+                    // Your form data as a key-value pair
+                    const formData = {
+                        project_id: '{{ project.id }}',
+                        form_type: "delete"
+                    };
+
+                    // Create a form element
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = endpointUrl;
+
+                    // Iterate through form data and create hidden input elements
+                    for (const [key, value] of Object.entries(formData)) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = value;
+                        form.appendChild(input);
+                    }
+
+                    // Append the form to the body and submit it
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            </script>
+            <button type="button" onclick="deleteProject()">Delete</button>
+            <div>
+                <h2>
+                    Description
+                </h2>
+                <textarea name="description" id="project-description">{{ project.desc }}</textarea>
+                <script>
+                    textarea = document.getElementById("project-description");
+                    // The 24 comes from the padding
+                    textarea.style.height = Math.max(textarea.scrollHeight, 12) + "px";
+                </script>
+            </div>
+            <input type="text" value="{{ project.id }}" name="project_id" style="display:none">
+            <input type="text" value="update" name="form_type" style="display:none">
+        </form>
         <h2>Styles</h2>
         <script type="text/javascript">
             var opened = false;

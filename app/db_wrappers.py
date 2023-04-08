@@ -63,10 +63,18 @@ def update_prompt(db, prompt_id, prompt_values, tags):
 
     # Update prompt values
     for key in prompt_values:
-        sql = """
-            UPDATE prompt_values SET value = ? WHERE prompt_id = ? AND key = ?
-        """
-        c.execute(sql, (prompt_values[key], prompt_id, key))
+        c.execute("SELECT * FROM prompt_values WHERE prompt_id = ? AND key = ?", (prompt_id, key))
+        res = c.fetchone()
+        if res:
+            sql = """
+                UPDATE prompt_values SET value = ? WHERE prompt_id = ? AND key = ?
+            """
+            c.execute(sql, (prompt_values[key], prompt_id, key))
+        else:
+            sql = """
+                INSERT INTO prompt_values (value, prompt_id, key) VALUES (?, ?, ?)
+            """
+            c.execute(sql, (prompt_values[key], prompt_id, key))
     # Update tags
     # Remove all prior tags
     sql = """
@@ -526,10 +534,11 @@ def get_tags_by_prompt_id(db, prompt_id):
     return tags.fetchall()
 
 def get_prompt_values_by_prompt_id(db, prompt_id):
+    c = db.cursor()
     sql = """
         SELECT * FROM prompt_values WHERE prompt_id = ?
     """
-    vals = db.execute(sql, (prompt_id,))
+    vals = c.execute(sql, (prompt_id,))
     return vals.fetchall()
 
 def add_project(db, name, description):
@@ -563,3 +572,77 @@ def add_style(db, idtext, format_string, completion_key, preview_key, project_id
     db.commit()
 
     return style_id
+
+def delete_project(db, project_id):
+    c = db.cursor()
+    # Remove all associated completions
+    sql = """
+        DELETE FROM examples
+        WHERE prompt_id IN (
+            SELECT id FROM prompts
+            WHERE project_id = ?
+        );
+    """
+    c.execute(sql, (project_id,))
+
+    # Remove all associated prompts
+    c.execute("DELETE FROM prompts WHERE project_id = ?", (project_id,))
+
+    # Remove all associated styles
+    c.execute("DELETE FROM styles WHERE project_id = ?", (project_id,))
+
+    # Remove project
+    c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+
+    db.commit()
+
+def update_project(db, project_id, description, name):
+    c = db.cursor()
+
+    if description:
+        c.execute("UPDATE projects SET desc = ? WHERE id = ?", (description, project_id))
+    if name:
+        c.execute("UPDATE projects SET name = ? WHERE id = ?", (name, project_id))
+
+    db.commit()
+
+def update_style(db, style_id, id_text, template, completion_key, preview_key):
+    c = db.cursor()
+
+    new_keys = get_named_arguments(template)
+    c.execute("SELECT * FROM style_keys WHERE style_id = ?", (style_id,))
+    old_keys = c.fetchall()
+
+    missing_keys = [x['name'] for x in old_keys if x['name'] not in new_keys]
+    added_keys = [x for x in new_keys if x not in [y['name'] for y in old_keys]]
+
+    for key in missing_keys:
+        c.execute("DELETE FROM style_keys WHERE name LIKE ? AND style_id = ?", (key, style_id))
+        # Also we delete all the prompt values associated with the removed key
+        c.execute("""
+            DELETE FROM prompt_values
+            WHERE prompt_values.key LIKE ?
+            AND prompt_values.prompt_id IN (
+                SELECT prompts.id FROM prompts
+                JOIN styles ON prompts.style = styles.id
+                WHERE styles.id = ?
+            )
+            """, (key, style_id))
+
+    for key in added_keys:
+        sql = """
+            INSERT INTO style_keys (name, style_id)
+            VALUES (?, ?)
+        """
+        c.execute(sql, (key, style_id))
+
+    if id_text:
+        c.execute("UPDATE styles SET id_text = ? WHERE id = ?", (id_text, style_id))
+    if template:
+        c.execute("UPDATE styles SET template = ? WHERE id = ?", (template, style_id))
+    if completion_key:
+        c.execute("UPDATE styles SET completion_key = ? WHERE id = ?", (completion_key, style_id))
+    if preview_key:
+        c.execute("UPDATE styles SET preview_key = ? WHERE id = ?", (preview_key, style_id))
+
+    db.commit()
