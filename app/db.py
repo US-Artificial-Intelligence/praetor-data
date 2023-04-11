@@ -2,6 +2,7 @@ import sqlite3
 import json
 import click
 from flask import current_app, g
+import os
 
 
 def dict_factory(cursor, row):
@@ -15,11 +16,18 @@ def dict_factory(cursor, row):
 
 def get_db():
     if 'db' not in g:
+
+        need_to_init = not os.path.exists(current_app.config['DATABASE'])
+
         g.db = sqlite3.connect(
             current_app.config['DATABASE'],
             detect_types=sqlite3.PARSE_DECLTYPES
         )
         g.db.row_factory = dict_factory
+
+        if need_to_init:
+            with current_app.open_resource('schema.sql') as f:
+                g.db.executescript(f.read().decode('utf8'))
 
     return g.db
 
