@@ -2,6 +2,8 @@
 
 Praetor is a dataset exploration tool. It is made for LLM finetuning data and prompts.
 
+## Screenshots
+
 ![The Praetor prompt search screen](screenshots/praetor-prompts-screen.png)
 
 ---
