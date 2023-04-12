@@ -4,6 +4,8 @@ Praetor is a dataset exploration tool. It is made for LLM finetuning data and pr
 
 ![The Praetor prompt search screen](screenshots/praetor-prompts-screen.png)
 
+![The Praetor style viewer](screenshots/praetor-style-screen.png)
+
 ## Why
 
 I got sick of scanning through large json files to try and get a feeling for a dataset. Then when I wanted to remove some data, I was using control F - this is obviously dumb. Praetor is a flask app that lets you mix, edit, view, and export datasets for LLMs. The only pip requirement is flask. To keep it simple, the frontend is very straightforward. It uses an sqlite database and jinja templating under the hood. You can import and export datasets in a json format, so it is very easy to use Praetor along with other tools and scripts you already have in place.
