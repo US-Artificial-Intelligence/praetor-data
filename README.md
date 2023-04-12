@@ -2,6 +2,8 @@
 
 Praetor is a dataset exploration tool. It is made for LLM finetuning data and prompts.
 
+![The Praetor prompt search screen](screenshots/praetor-prompts-screen.png)
+
 ## About
 
 Praetor is a super lightweight finetuning data and prompt management tool. The setup requirements are minimal, and so is the complexity.
