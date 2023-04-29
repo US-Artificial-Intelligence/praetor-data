@@ -61,9 +61,19 @@
         <div>
             <span>Total Results:</span>
             {{ "{:,d}".format(total_results) }}
-            <span style="margin-left:1em">Total Selected:</span>
+            &emsp; <!-- this is a tab -->
+            <span>Total Selected:</span>
             <span id="totalSelected"></span>
-            <span onclick="submitChanges('delete')" style="cursor:pointer">&#x1f5d1;</span>
+            <!--
+                The weird attributes in the following span are for accessibility purposes.
+                This is necessary when using regular text elements as buttons
+            -->
+            <span onclick="submitChanges('delete')"
+                aria-label="delete selection"
+                tabindex="0"
+                role="button"
+                style="cursor:pointer">&#x1f5d1;
+            </span>
         </div>
     </div>
     <table>
@@ -198,12 +208,10 @@
                     console.error(xhr.statusText);
                 }
             };
-
             xhr.onerror = () => {
                 // Request failed
                 console.error(xhr.statusText);
             };
-
             // Send the request
             xhr.send(jsonData);
         }

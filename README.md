@@ -45,13 +45,3 @@ This software is distributed under a non-commercial license, but if you would li
 Everyone should feel free to open an issue if you have any comments, questions, or suggestions.
 
 Pull requests should be submitted to the development branch. Please do not make additions to the requirements unless they are necessary. Frontend frameworks are not necessary. The frontend should be as simple and functional as possible.
-
-### Dev Environment
-
-If you are making changes VSCode, you may want to add
-
-```
-"html.validate.scripts": false,
-```
-
-to your `settings.json` file in order to ignore certain false-alarms in the Jinja templates.

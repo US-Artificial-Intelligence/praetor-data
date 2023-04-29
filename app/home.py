@@ -21,6 +21,7 @@ def manifest():
     db = get_db()
 
     # When a user selects prompts via check box and clicks a button
+    # This will trigger a special json response, not the web page
     if request.method == 'POST':
         form_data = request.json
         selected_prompts = form_data['prompt_ids']
@@ -28,8 +29,9 @@ def manifest():
         if action == 'delete':
             # One day, this should probably be batched
             for prompt_id in selected_prompts:
-                print(prompt_id)
                 delete_prompt(db, prompt_id)
+        response_text = json.dumps({'response': 'success', 'prompts_affected': selected_prompts, 'action': action})
+        return response_text
 
     limit = 100
     offset = request.args.get('offset')
