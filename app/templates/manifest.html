@@ -62,7 +62,8 @@
             <span>Total Results:</span>
             {{ "{:,d}".format(total_results) }}
             <span style="margin-left:1em">Total Selected:</span>
-            <span id="totalSelected">0</span>
+            <span id="totalSelected"></span>
+            <span onclick="submitChanges('delete')" style="cursor:pointer">&#x1f5d1;</span>
         </div>
     </div>
     <table>
@@ -78,7 +79,7 @@
             {% for row in prompts %}
             <tr>
                 <td>
-                    <input type="checkbox" onclick="doCheck({{ row.prompt_id }})" name="checked.{{ row.prompt_id }}" value="{{ row.prompt_id }}" />
+                    <input type="checkbox" class="checkbox" onclick="doCheck()" id="checked.{{ row.prompt_id }}" value="{{ row.prompt_id }}" />
                 </td>
                 <td><a href="/view?prompt_id={{ row.prompt_id }}"> View </a></td>
                 <td>{{ row.value }}</td>
@@ -142,6 +143,8 @@
             document.getElementById('extra-search-form').style.display = "block";
         }
 
+        setSelected();
+
         function openSearch(){
             if(document.getElementById("extra-search-form").style.display == "none"){
                 document.getElementById("extra-search-form").style.display = "block";
@@ -152,20 +155,57 @@
         }
 
         var selectedPrompts = []
-        function setTotalSelected(){
+        function setSelected(){
+            selectedPrompts = []
+            let checkboxes = document.getElementsByClassName('checkbox');
+            let numSelected = 0
+            for(let i = 0; i < checkboxes.length; i++){
+                if(checkboxes[i].checked){
+                    numSelected++;
+                    const str = checkboxes[i].id;
+                    const regex = /checked\.(\d+)/;  // just grabbing the number after 'checked' in the most chatgpt way possible
+                    const match = str.match(regex);
+                    let prompt_id = match ? parseInt(match[1]) : null;
+                    selectedPrompts.push(prompt_id);
+                }
+            }
             let el = document.getElementById("totalSelected");
-            el.innerHTML = "" + selectedPrompts.length;
+            el.innerHTML = "" + numSelected;
         }
         function doCheck(promptid){
-            // If it's in the list, remove it
-            if (selectedPrompts.includes(promptid)) {
-                selectedPrompts.splice(selectedPrompts.indexOf(promptid), 1);
-            }
-            // If it isn't, add it
-            else {
-                selectedPrompts.push(promptid);
-            }
-            setTotalSelected();
+            setSelected();
+        }
+
+        function submitChanges(action){
+            setSelected();
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/manifest");
+
+            // Set the request header
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            // Set the data to be sent with the request
+            const data = { prompt_ids: selectedPrompts, action: action };
+            const jsonData = JSON.stringify(data);
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    // Request was successful
+                    location.reload();
+                } else {
+                    // Request failed
+                    console.error(xhr.statusText);
+                }
+            };
+
+            xhr.onerror = () => {
+                // Request failed
+                console.error(xhr.statusText);
+            };
+
+            // Send the request
+            xhr.send(jsonData);
         }
 
     </script>
