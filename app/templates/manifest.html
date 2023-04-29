@@ -66,14 +66,23 @@
     <table>
         <thead>
             <tr>
+                <th></th>
                 <th>Link</th>
                 <th>Prompt</th>
                 <th>Tags</th>
             </tr>
         </thead>
         <tbody>
+            <script type="text/javascript">
+                function doCheck(promptid){
+                    alert("bruh");
+                }
+            </script>
             {% for row in prompts %}
             <tr>
+                <td>
+                    <input type="checkbox" onclick="doCheck({{ row.prompt_id }})" name="checked.{{ row.prompt_id }}" value="{{ row.prompt_id }}" />
+                </td>
                 <td><a href="/view?prompt_id={{ row.prompt_id }}"> View </a></td>
                 <td>{{ row.value }}</td>
                 <td>{{ row.tags }}</td>
