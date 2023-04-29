@@ -61,6 +61,8 @@
         <div>
             <span>Total Results:</span>
             {{ "{:,d}".format(total_results) }}
+            <span style="margin-left:1em">Total Selected:</span>
+            <span id="totalSelected">0</span>
         </div>
     </div>
     <table>
@@ -73,11 +75,6 @@
             </tr>
         </thead>
         <tbody>
-            <script type="text/javascript">
-                function doCheck(promptid){
-                    alert("bruh");
-                }
-            </script>
             {% for row in prompts %}
             <tr>
                 <td>
@@ -153,6 +150,24 @@
                 document.getElementById("extra-search-form").style.display = "none";
             }
         }
+
+        var selectedPrompts = []
+        function setTotalSelected(){
+            let el = document.getElementById("totalSelected");
+            el.innerHTML = "" + selectedPrompts.length;
+        }
+        function doCheck(promptid){
+            // If it's in the list, remove it
+            if (selectedPrompts.includes(promptid)) {
+                selectedPrompts.splice(selectedPrompts.indexOf(promptid), 1);
+            }
+            // If it isn't, add it
+            else {
+                selectedPrompts.push(promptid);
+            }
+            setTotalSelected();
+        }
+
     </script>
 </div>
 {% endblock %}
