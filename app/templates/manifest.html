@@ -61,11 +61,25 @@
         <div>
             <span>Total Results:</span>
             {{ "{:,d}".format(total_results) }}
+            &emsp; <!-- this is a tab -->
+            <span>Total Selected:</span>
+            <span id="totalSelected"></span>
+            <!--
+                The weird attributes in the following span are for accessibility purposes.
+                This is necessary when using regular text elements as buttons
+            -->
+            <span onclick="submitChanges('delete')"
+                aria-label="delete selection"
+                tabindex="0"
+                role="button"
+                style="cursor:pointer">&#x1f5d1;
+            </span>
         </div>
     </div>
     <table>
         <thead>
             <tr>
+                <th></th>
                 <th>Link</th>
                 <th>Prompt</th>
                 <th>Tags</th>
@@ -74,6 +88,9 @@
         <tbody>
             {% for row in prompts %}
             <tr>
+                <td>
+                    <input type="checkbox" class="checkbox" onclick="doCheck()" id="checked.{{ row.prompt_id }}" value="{{ row.prompt_id }}" />
+                </td>
                 <td><a href="/view?prompt_id={{ row.prompt_id }}"> View </a></td>
                 <td>{{ row.value }}</td>
                 <td>{{ row.tags }}</td>
@@ -136,6 +153,8 @@
             document.getElementById('extra-search-form').style.display = "block";
         }
 
+        setSelected();
+
         function openSearch(){
             if(document.getElementById("extra-search-form").style.display == "none"){
                 document.getElementById("extra-search-form").style.display = "block";
@@ -144,6 +163,59 @@
                 document.getElementById("extra-search-form").style.display = "none";
             }
         }
+
+        var selectedPrompts = []
+        function setSelected(){
+            selectedPrompts = []
+            let checkboxes = document.getElementsByClassName('checkbox');
+            let numSelected = 0
+            for(let i = 0; i < checkboxes.length; i++){
+                if(checkboxes[i].checked){
+                    numSelected++;
+                    const str = checkboxes[i].id;
+                    const regex = /checked\.(\d+)/;  // just grabbing the number after 'checked' in the most chatgpt way possible
+                    const match = str.match(regex);
+                    let prompt_id = match ? parseInt(match[1]) : null;
+                    selectedPrompts.push(prompt_id);
+                }
+            }
+            let el = document.getElementById("totalSelected");
+            el.innerHTML = "" + numSelected;
+        }
+        function doCheck(promptid){
+            setSelected();
+        }
+
+        function submitChanges(action){
+            setSelected();
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/manifest");
+
+            // Set the request header
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            // Set the data to be sent with the request
+            const data = { prompt_ids: selectedPrompts, action: action };
+            const jsonData = JSON.stringify(data);
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    // Request was successful
+                    location.reload();
+                } else {
+                    // Request failed
+                    console.error(xhr.statusText);
+                }
+            };
+            xhr.onerror = () => {
+                // Request failed
+                console.error(xhr.statusText);
+            };
+            // Send the request
+            xhr.send(jsonData);
+        }
+
     </script>
 </div>
 {% endblock %}

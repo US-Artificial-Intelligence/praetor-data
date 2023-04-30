@@ -4,8 +4,9 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import get_projects, search_prompts, get_styles
+from app.db_wrappers import delete_project, get_projects, search_prompts, get_styles, delete_prompt
 from app.utils import tag_string_to_list
+import json
 
 bp = Blueprint('home', __name__)
 
@@ -18,6 +19,19 @@ def home():
 def manifest():
 
     db = get_db()
+
+    # When a user selects prompts via check box and clicks a button
+    # This will trigger a special json response, not the web page
+    if request.method == 'POST':
+        form_data = request.json
+        selected_prompts = form_data['prompt_ids']
+        action = form_data['action']
+        if action == 'delete':
+            # One day, this should probably be batched
+            for prompt_id in selected_prompts:
+                delete_prompt(db, prompt_id)
+        response_text = json.dumps({'response': 'success', 'prompts_affected': selected_prompts, 'action': action})
+        return response_text
 
     limit = 100
     offset = request.args.get('offset')
