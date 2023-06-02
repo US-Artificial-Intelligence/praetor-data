@@ -23,13 +23,18 @@
             </tr>
         </thead>
         <tbody>
+            {% set ns = namespace(count=0) %}
             {% for row in exports %}
+            {% set ns.count = ns.count + 1 %}
             <tr>
                 <td><a href="/exports?download_id={{ row.id }}"> Download</a></td>
                 <td>{{ row.created_at }}</td>
                 <td>{{ row.filename }}</td>
             </tr>
             {% endfor %}
+            {% if ns.count == 0 %}
+                No exports made yet - you can export completions from the prompt manifest screen (the prompt search area). <br/><br/>
+            {% endif %}
         </tbody>
     </table>
   </div>
