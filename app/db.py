@@ -3,6 +3,7 @@ import json
 import click
 from flask import current_app, g
 import os
+import shutil
 
 
 def dict_factory(cursor, row):
@@ -30,6 +31,21 @@ def get_db():
                 g.db.executescript(f.read().decode('utf8'))
 
     return g.db
+
+
+def get_tmp_db(instance_path, old_db_path):
+
+    # TODO: make unique for each process?
+    new_db_path = os.path.join(instance_path, "tmp.sqlite")
+    shutil.copyfile(old_db_path, new_db_path)
+
+    db = sqlite3.connect(
+        new_db_path,
+        detect_types=sqlite3.PARSE_DECLTYPES
+    )
+    db.row_factory = dict_factory
+
+    return db, new_db_path
 
 
 def close_db(e=None):

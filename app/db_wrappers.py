@@ -5,6 +5,9 @@ from unicodedata import name
 from app.db import SQLiteJSONEncoder
 from flask import current_app
 from app.utils import get_named_arguments
+from app.db import get_tmp_db
+import shutil
+
 
 """
 
@@ -241,7 +244,7 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
 
     task_id = c.lastrowid
 
-    p = multiprocessing.Process(target=export_background, args=(db, task_id, filename, content, tags, example, style_id, project_id))
+    p = multiprocessing.Process(target=export_background, args=(current_app.instance_path, current_app.config['DATABASE'], current_app.config['EXPORTS_PATH'], task_id, filename, content, tags, example, style_id, project_id))
     p.start()
 
     sql = """
@@ -257,7 +260,9 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
     }
     return status
 
-def export_background(db, task_id, filename, content, tags, example, style_id, project_id):
+def export_background(instance_path, old_db_path, exports_path, task_id, filename, content, tags, example, style_id, project_id):
+
+    db, new_db_path = get_tmp_db(instance_path, old_db_path)
 
     # The try catch is not compehensive
     # There should be an option for the user to check on the program itself (via its pid)
@@ -309,7 +314,7 @@ def export_background(db, task_id, filename, content, tags, example, style_id, p
         res = c.execute(sql, tuple(args))
         prompts = res.fetchall()
 
-        path = os.path.join(current_app.config.get('EXPORTS_PATH'), filename)
+        path = os.path.join(exports_path, filename)
         fhand = open(path, 'w')
         fhand.write('[\n')
 
@@ -377,6 +382,8 @@ def export_background(db, task_id, filename, content, tags, example, style_id, p
         db.execute(sql, (os.getpid(),))
         db.commit()
         print(f"Error occurred: {e}")
+
+    shutil.copyfile(new_db_path, old_db_path)
 
 def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=None, tags_arg=None, project_id=None, style_id=None):
     
