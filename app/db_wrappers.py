@@ -3,7 +3,7 @@ import json
 import os
 from unicodedata import name
 from app.db import SQLiteJSONEncoder
-from flask import current_app
+from flask import current_app, session
 from app.utils import get_named_arguments
 from app.db import get_tmp_db
 import shutil
@@ -140,6 +140,9 @@ def add_bulk(db, data, tags, project_id, style_id):
     db.execute(sql, (p.pid, task_id))
     db.commit()
 
+    # Make session token to warn user about parallelism
+    session['warn_parallelism'] = True
+
     status = {
         'pid': p.pid,
         'status': 'in_progress'
@@ -258,6 +261,9 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
         WHERE id = ?
     """
     c.execute(sql, (p.pid, task_id))
+
+    # Make session token to warn user about parallelism
+    session['warn_parallelism'] = True
 
     db.commit()
     status = {
@@ -455,6 +461,7 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
 
 def check_running(db):
     tasks = get_tasks(db)
+    has_oustanding = False
     for task in tasks:
         if task['status'] == 'in_progress':
             task_id = task['id']
@@ -473,12 +480,13 @@ def check_running(db):
                 # Check if process with pid exists
                 if process.is_running() and process.ppid() == os.getpid():
                     # is still in progress, nothing to do
-                    pass
+                    has_oustanding = True
                 else:
                     update_records(task_id)
             except psutil.NoSuchProcess:
                 update_records(task_id)
-
+    if not has_oustanding:
+        session['warn_parallelism'] = False
 
 
 def get_tasks(db):
