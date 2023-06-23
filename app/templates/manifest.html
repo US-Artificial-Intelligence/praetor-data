@@ -24,7 +24,7 @@
                 <br/><br/>
                 <input type="button" id="open-search-header" onclick="openSearch()" value="More Options" />
                 <a style="all:unset" href="{{ url_for('exporting.exp', **query_params) }}">
-                    <input type="button" value="Export" />
+                    <input type="button" value="Export All Results" />
                 </a>
                 {% if request.args %}
                 <a href="/manifest">

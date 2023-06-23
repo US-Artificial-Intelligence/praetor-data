@@ -320,7 +320,6 @@ def export_background(instance_path, old_db_path, exports_path, task_id, filenam
             WHERE prompt_values.value LIKE ?
             {proj_id_query}
             {style_id_query}
-            LIMIT 10
         """
         c = db.cursor()
         res = c.execute(sql, tuple(args))
@@ -487,6 +486,8 @@ def check_running(db):
                 update_records(task_id)
     if not has_oustanding:
         session['warn_parallelism'] = False
+
+    return has_oustanding
 
 
 def get_tasks(db):

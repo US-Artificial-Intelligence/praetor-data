@@ -9,6 +9,11 @@
 {% block content %}
 <div>
     <h1>Add Data</h1>
+    {% if error %}
+    <div style="background-color: red;padding:5px">
+        Error: {{ error }}
+    </div>
+    {% endif %}
     <div>
         <form action="/add" method="POST">
             <h2>
