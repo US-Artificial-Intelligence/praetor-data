@@ -7,6 +7,7 @@ from flask import current_app
 from app.utils import get_named_arguments
 from app.db import get_tmp_db
 import shutil
+import psutil
 
 
 """
@@ -128,7 +129,7 @@ def add_bulk(db, data, tags, project_id, style_id):
     task_id = c.lastrowid
     db.commit()
 
-    p = multiprocessing.Process(target=add_bulk_background, args=(db, task_id, data, tags, project_id, style_id))
+    p = multiprocessing.Process(target=add_bulk_background, args=(current_app.instance_path, current_app.config['DATABASE'], task_id, data, tags, project_id, style_id))
     p.start()
 
     sql = """
@@ -137,6 +138,7 @@ def add_bulk(db, data, tags, project_id, style_id):
         WHERE id = ?
     """
     db.execute(sql, (p.pid, task_id))
+    db.commit()
 
     status = {
         'pid': p.pid,
@@ -145,7 +147,9 @@ def add_bulk(db, data, tags, project_id, style_id):
     return status
 
 # NOTE: doesn't support example tags yet or multiple examples per prompt
-def add_bulk_background(db, task_id, data, tags, project_id, style_id):
+def add_bulk_background(instance_path, old_db_path, task_id, data, tags, project_id, style_id):
+    db, new_db_path = get_tmp_db(instance_path, old_db_path)
+    
     try:
         c = db.cursor()
 
@@ -216,6 +220,8 @@ def add_bulk_background(db, task_id, data, tags, project_id, style_id):
         """
         db.execute(sql, (task_id,))
         db.commit()
+
+    shutil.copyfile(new_db_path, old_db_path)
 
 """
 
@@ -447,19 +453,47 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
     return fetched, total_results
 
 
+def check_running(db):
+    tasks = get_tasks(db)
+    for task in tasks:
+        if task['status'] == 'in_progress':
+            task_id = task['id']
+            pid = task['pid']
+
+            def update_records(task_id):
+                sql = """
+                    UPDATE tasks
+                    SET status = 'failed'
+                    WHERE id = ?;
+                """
+                db.execute(sql, (task_id,))
+                db.commit()
+            try:
+                process = psutil.Process(pid)
+                # Check if process with pid exists
+                if process.is_running() and process.ppid() == os.getpid():
+                    # is still in progress, nothing to do
+                    pass
+                else:
+                    update_records(task_id)
+            except psutil.NoSuchProcess:
+                update_records(task_id)
+
+
+
 def get_tasks(db):
     sql = """
         SELECT * FROM tasks ORDER BY created_at DESC
     """
     tasks = db.execute(sql)
-    return tasks
+    return tasks.fetchall()
 
 def get_exports(db):
     sql = """
         SELECT * FROM exports ORDER BY created_at DESC
     """
     exports = db.execute(sql)
-    return exports
+    return exports.fetchall()
 
 def get_export_by_id(db, id):
     sql = """
