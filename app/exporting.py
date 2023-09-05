@@ -5,10 +5,11 @@ from flask import (
     render_template,
     request,
     send_file,
-    current_app
+    current_app,
+    session
 )
 from app.db import get_db
-from app.db_wrappers import export, get_exports, get_export_by_id, get_styles, get_projects
+from app.db_wrappers import export, get_exports, get_export_by_id, get_styles, get_projects, check_running
 from app.utils import tag_string_to_list
 
 bp = Blueprint('exporting', __name__)
@@ -17,6 +18,10 @@ bp = Blueprint('exporting', __name__)
 def exp():
     db = get_db()
     if request.method == "POST":
+
+        if check_running(db):
+            return render_template('export.html', styles=get_styles(db), projects=get_projects(db), error="Cannot create new export while current task is incomplete.")
+
         filename = request.form.get('filename') if request.form.get('filename') else "export.json"
 
         tags = request.form.get('tags')

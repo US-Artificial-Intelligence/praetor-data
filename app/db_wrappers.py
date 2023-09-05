@@ -3,8 +3,12 @@ import json
 import os
 from unicodedata import name
 from app.db import SQLiteJSONEncoder
-from flask import current_app
+from flask import current_app, session
 from app.utils import get_named_arguments
+from app.db import get_tmp_db
+import shutil
+import psutil
+
 
 """
 
@@ -125,7 +129,7 @@ def add_bulk(db, data, tags, project_id, style_id):
     task_id = c.lastrowid
     db.commit()
 
-    p = multiprocessing.Process(target=add_bulk_background, args=(db, task_id, data, tags, project_id, style_id))
+    p = multiprocessing.Process(target=add_bulk_background, args=(current_app.instance_path, current_app.config['DATABASE'], task_id, data, tags, project_id, style_id))
     p.start()
 
     sql = """
@@ -134,6 +138,10 @@ def add_bulk(db, data, tags, project_id, style_id):
         WHERE id = ?
     """
     db.execute(sql, (p.pid, task_id))
+    db.commit()
+
+    # Make session token to warn user about parallelism
+    session['warn_parallelism'] = True
 
     status = {
         'pid': p.pid,
@@ -142,7 +150,9 @@ def add_bulk(db, data, tags, project_id, style_id):
     return status
 
 # NOTE: doesn't support example tags yet or multiple examples per prompt
-def add_bulk_background(db, task_id, data, tags, project_id, style_id):
+def add_bulk_background(instance_path, old_db_path, task_id, data, tags, project_id, style_id):
+    db, new_db_path = get_tmp_db(instance_path, old_db_path)
+    
     try:
         c = db.cursor()
 
@@ -214,6 +224,8 @@ def add_bulk_background(db, task_id, data, tags, project_id, style_id):
         db.execute(sql, (task_id,))
         db.commit()
 
+    shutil.copyfile(new_db_path, old_db_path)
+
 """
 
 Will export a json file, which is a list of dictionaries with each key matching
@@ -241,7 +253,7 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
 
     task_id = c.lastrowid
 
-    p = multiprocessing.Process(target=export_background, args=(db, task_id, filename, content, tags, example, style_id, project_id))
+    p = multiprocessing.Process(target=export_background, args=(current_app.instance_path, current_app.config['DATABASE'], current_app.config['EXPORTS_PATH'], task_id, filename, content, tags, example, style_id, project_id))
     p.start()
 
     sql = """
@@ -250,6 +262,9 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
     """
     c.execute(sql, (p.pid, task_id))
 
+    # Make session token to warn user about parallelism
+    session['warn_parallelism'] = True
+
     db.commit()
     status = {
         'pid': p.pid,
@@ -257,7 +272,9 @@ def export(db, filename, tags=[], content="", example="", project_id=None, style
     }
     return status
 
-def export_background(db, task_id, filename, content, tags, example, style_id, project_id):
+def export_background(instance_path, old_db_path, exports_path, task_id, filename, content, tags, example, style_id, project_id):
+
+    db, new_db_path = get_tmp_db(instance_path, old_db_path)
 
     # The try catch is not compehensive
     # There should be an option for the user to check on the program itself (via its pid)
@@ -303,13 +320,12 @@ def export_background(db, task_id, filename, content, tags, example, style_id, p
             WHERE prompt_values.value LIKE ?
             {proj_id_query}
             {style_id_query}
-            LIMIT 10
         """
         c = db.cursor()
         res = c.execute(sql, tuple(args))
         prompts = res.fetchall()
 
-        path = os.path.join(current_app.config.get('EXPORTS_PATH'), filename)
+        path = os.path.join(exports_path, filename)
         fhand = open(path, 'w')
         fhand.write('[\n')
 
@@ -378,6 +394,8 @@ def export_background(db, task_id, filename, content, tags, example, style_id, p
         db.commit()
         print(f"Error occurred: {e}")
 
+    shutil.copyfile(new_db_path, old_db_path)
+
 def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=None, tags_arg=None, project_id=None, style_id=None):
     
     offset = 0 if not offset else offset
@@ -440,19 +458,51 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
     return fetched, total_results
 
 
+def check_running(db):
+    tasks = get_tasks(db)
+    has_oustanding = False
+    for task in tasks:
+        if task['status'] == 'in_progress':
+            task_id = task['id']
+            pid = task['pid']
+
+            def update_records(task_id):
+                sql = """
+                    UPDATE tasks
+                    SET status = 'failed'
+                    WHERE id = ?;
+                """
+                db.execute(sql, (task_id,))
+                db.commit()
+            try:
+                process = psutil.Process(pid)
+                # Check if process with pid exists
+                if process.is_running() and process.ppid() == os.getpid():
+                    # is still in progress, nothing to do
+                    has_oustanding = True
+                else:
+                    update_records(task_id)
+            except psutil.NoSuchProcess:
+                update_records(task_id)
+    if not has_oustanding:
+        session['warn_parallelism'] = False
+
+    return has_oustanding
+
+
 def get_tasks(db):
     sql = """
         SELECT * FROM tasks ORDER BY created_at DESC
     """
     tasks = db.execute(sql)
-    return tasks
+    return tasks.fetchall()
 
 def get_exports(db):
     sql = """
         SELECT * FROM exports ORDER BY created_at DESC
     """
     exports = db.execute(sql)
-    return exports
+    return exports.fetchall()
 
 def get_export_by_id(db, id):
     sql = """

@@ -5,7 +5,7 @@ from flask import (
     redirect
 )
 from app.db import get_db
-from app.db_wrappers import add_prompt, add_bulk, get_project_by_id, get_style_by_id, get_styles_by_project_id, get_keys_by_style_id
+from app.db_wrappers import add_prompt, add_bulk, get_project_by_id, get_style_by_id, get_styles_by_project_id, get_keys_by_style_id, check_running
 from app.utils  import tag_string_to_list
 import json
 
@@ -16,7 +16,7 @@ def add():
 
     db = get_db()
 
-    if request.method == "POST":
+    if request.method == "POST" and not check_running(db):
 
         project_id = request.form.get('project_id')
         style_id = request.form.get('style_id')
@@ -53,6 +53,12 @@ def add():
     else:
         project_id = request.args.get('project_id')
         style_id = request.args.get('style_id')
+    
+        error = None
+        if request.method == 'POST' and check_running(db):
+            project_id = request.form.get('project_id')
+            style_id = request.form.get('style_id')
+            error = "Cannot add new data while current task is incomplete."
 
         style = get_style_by_id(db, style_id)
         project = get_project_by_id(db, project_id)
@@ -62,4 +68,4 @@ def add():
             completion_key = style['completion_key']
             style_keys = [x for x in style_keys if x['name'] != completion_key]
 
-        return render_template('add.html', style=style, project=project, style_keys=style_keys)
+        return render_template('add.html', style=style, project=project, style_keys=style_keys, error=error)

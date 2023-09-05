@@ -10,6 +10,11 @@
     <h1>
         Export
     </h1>
+    {% if error %}
+    <div style="background-color: red;padding:5px">
+        Error: {{ error }}
+    </div>
+    {% endif %}
     <div>
         <form action="/export" method="POST">
             <h2>

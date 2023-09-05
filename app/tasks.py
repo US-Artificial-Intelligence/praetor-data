@@ -4,11 +4,13 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import get_tasks, export, get_exports
+from app.db_wrappers import get_tasks, check_running
 
 bp = Blueprint('tasks', __name__)
 
 @bp.route('/tasks', methods=('GET',))
 def tasks():
-    tasks = get_tasks(get_db())
+    db = get_db()
+    check_running(db)
+    tasks = get_tasks(db)
     return render_template('tasks.html', tasks=tasks)

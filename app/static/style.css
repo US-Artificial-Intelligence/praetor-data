@@ -47,3 +47,10 @@ nav a{
     flex-grow: 1;
     margin-bottom: 200px; /* minimum 200px distance from the footer */
 }
+
+.warning {
+    background-color: #f0f0f0;
+    text-align: center;
+    padding: 5px;
+    margin-bottom: 10px;
+}

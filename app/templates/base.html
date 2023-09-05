@@ -5,6 +5,11 @@
     {% block meta %}{% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
+{% if session['warn_parallelism'] %}
+<div class="warning">
+    Warning: no changes may be made to the database while a <a href="/tasks">task</a> is still outstanding.
+</div>
+{% endif %}
 <nav>
   <a href="/"><b><span class="nav-bar-main-header">Praetor</span></b></a>
   <a href="/manifest"><span class="nav-bar-text">Prompts</span></a>
