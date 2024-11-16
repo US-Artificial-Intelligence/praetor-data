@@ -50,7 +50,7 @@ flask run
 
 ## License
 
-This software is distributed under a non-commercial license, but if you would like to use it in a commercial setting, just open an issue or shoot an email to gordon@agrippa.build and ask.
+This software is distributed under the Apache 2.0 open source license.
 
 ## Contributing
 
